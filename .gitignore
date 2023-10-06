@@ -1,0 +1,6 @@
+# Default ignored files
+/target
+/shelf/
+/workspace.xml
+Cargo.lock
+/.idea/

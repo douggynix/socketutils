@@ -1,6 +1,7 @@
+use std::borrow::Borrow;
 use std::collections::HashMap;
 use sscanf::sscanf;
-use super::linuxsocket_utils;
+use super::utils;
 
 
 const LOCAL_SOCKET: usize = 1;
@@ -12,6 +13,21 @@ const INODE: usize = 9;
 
 #[derive(Debug, PartialEq)]
 pub struct IpAddress(pub u8,pub u8,pub u8,pub u8);
+
+#[derive(Debug, PartialEq)]
+pub struct EndPoint {
+    port : u16,
+    address: IpAddress,
+}
+
+impl EndPoint {
+    fn new(address : IpAddress, port : u16) -> EndPoint {
+        EndPoint{
+            port,
+            address,
+        }
+    }
+}
 
 #[derive(Debug, PartialEq)]
 pub struct SocketInfo {
@@ -26,13 +42,13 @@ pub struct SocketInfo {
 
 
 impl SocketInfo {
-    pub fn new(procfs_record: &str) -> SocketInfo{
-        return build_socket_metadata(procfs_record);
+    pub fn new(procfs_record: &str) -> Result<SocketInfo, sscanf::Error>{
+         build_socket_metadata(procfs_record)
     }
 }
 
 
-fn build_socket_metadata(socket_data : &str) -> SocketInfo{
+fn build_socket_metadata(socket_data : &str) -> Result<SocketInfo, sscanf::Error>{
     let mut socket_info : SocketInfo = SocketInfo {
         local_address: IpAddress(127, 0, 0, 1),
         local_port: 0,
@@ -43,71 +59,64 @@ fn build_socket_metadata(socket_data : &str) -> SocketInfo{
         uid: 0,
     };
 
-    let socket_vec_entry = linuxsocket_utils::get_word_vector(socket_data);
+    let socket_vec_entry = utils::split_text_by_words(socket_data);
 
-    let local_addr_info = get_local_socket(&socket_vec_entry);
-    let remote_addr_info = get_remote_socket(&socket_vec_entry);
+    let local_addr_info = get_local_socket(&socket_vec_entry)?;
+    let remote_addr_info = get_remote_socket(&socket_vec_entry) ?;
 
-    let s_state = get_socket_state(&socket_vec_entry);
+    let s_state = get_socket_state(&socket_vec_entry)?;
 
-    let inode_num = get_socket_inode(& socket_vec_entry);
+    let inode_num = get_socket_inode(& socket_vec_entry)?;
 
-    let user_id = get_socket_uid(& socket_vec_entry);
+    let user_id = get_socket_uid(& socket_vec_entry)?;
 
     //println!("State : {}", tcp_state.get(& state));
     socket_info = SocketInfo{
-        local_address : local_addr_info.0,
-        local_port: local_addr_info.1,
-        remote_address : remote_addr_info.0,
-        remote_port: remote_addr_info.1,
+        local_address : local_addr_info.address,
+        local_port: local_addr_info.port,
+        remote_address : remote_addr_info.address,
+        remote_port: remote_addr_info.port,
         state : s_state,
         inode: inode_num,
         uid: user_id,
         ..socket_info
     };
-
     //println!("Socket meta data {:?}",socket_info);
-    return socket_info;
+    return Ok(socket_info);
 }
 
-fn get_socket_inode(socket_vec_entry: &Vec<&str>) -> usize {
-    return get_socket_usize(socket_vec_entry[INODE]);
-
+fn get_socket_inode(socket_vec_entry: &Vec<&str>) -> Result<usize, sscanf::Error> {
+    get_entry_usize(socket_vec_entry[INODE])
 }
 
-fn get_socket_usize(entry: &str) -> usize {
-    let val: usize = match sscanf!(entry,"{usize}") {
-        Ok(value) => value,
-        Err(error) => panic!("Failed to match inode for value {} with error {}", entry,error)
-    };
-    val
+fn get_entry_usize(entry: &str) -> Result<usize, sscanf::Error> {
+    let value: usize = sscanf!(entry,"{usize}")?;
+    Ok(value)
 }
 
 
-fn get_socket_data(socket_entry: &str) -> (IpAddress , u16) {
-    match sscanf!(socket_entry,"{u8:x}{u8:x}{u8:x}{u8:x}:{u16:x}"){
-        Ok(values) =>  {
-            ( IpAddress(values.3, values.2, values.1 , values.0) , values.4)
-        }
-        Err(error) => {
-            panic!("Failed to parse local port {:?} ",error)
-        }
-    }
+fn get_socket_data(socket_entry: &str) -> Result<EndPoint, sscanf::Error> {
+
+    let little_endian : (u8,u8,u8,u8, u16) = sscanf!(socket_entry,"{u8:x}{u8:x}{u8:x}{u8:x}:{u16:x}")? ;
+    let endpoint = EndPoint::new( IpAddress(little_endian.3,
+                                            little_endian.2, little_endian.1 ,
+                                            little_endian.0) , little_endian.4 );
+    Ok(endpoint)
 }
 
-fn get_local_socket(socket_record : &Vec<&str>) -> (IpAddress , u16){
-    return get_socket_data(socket_record[LOCAL_SOCKET]);
+fn get_local_socket(socket_record : &Vec<&str>) -> Result<EndPoint, sscanf::Error>{
+    get_socket_data(socket_record[LOCAL_SOCKET])
 }
 
-fn get_remote_socket(socket_record : &Vec<&str>) -> (IpAddress , u16){
-    return get_socket_data(socket_record[REMOTE_SOCKET]);
+fn get_remote_socket(socket_record : &Vec<&str>) -> Result<EndPoint, sscanf::Error>{
+    get_socket_data(socket_record[REMOTE_SOCKET])
 }
 
-fn get_socket_uid(socket_record: &Vec<&str>) -> usize{
-    return get_socket_usize(socket_record[UID]);
+fn get_socket_uid(socket_record: &Vec<&str>) -> Result<usize, sscanf::Error>{
+    get_entry_usize(socket_record[UID])
 }
 
-fn get_socket_state(socket_record: &Vec<&str>) -> String {
+fn get_socket_state(socket_record: &Vec<&str>) -> Result<String, sscanf::Error> {
     //https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/tree/include/net/tcp_states.h
     let tcp_state: HashMap<u8,&str> = HashMap::from(
         [
@@ -126,17 +135,8 @@ fn get_socket_state(socket_record: &Vec<&str>) -> String {
         ]
     );
 
-    let state: &str  = match sscanf!(socket_record[SOCKET_STATE],"{u8:x}") {
-        Ok(socket_state) => {
-            match tcp_state.get(&socket_state) {
-                None => "UNKNOWN",
-                Some(state_value) => {
-                    state_value
-                }
-            }
-        }
-        Err(error) => panic!("Failed parsing tcp State for {} with error : {} ", socket_record[3],error)
-    };
+    let state_index : u8 = sscanf!(socket_record[SOCKET_STATE],"{u8:x}")? ;
 
-    return String::from(state);
+    let state = tcp_state.get(& state_index).unwrap_or(& "UNKNOWN");
+     Ok( state.to_string())
 }

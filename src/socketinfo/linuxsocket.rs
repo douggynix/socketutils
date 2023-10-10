@@ -1,6 +1,5 @@
+use std::borrow::Borrow;
 use std::collections::HashMap;
-use std::fmt;
-use std::fmt::Formatter;
 use sscanf::sscanf;
 use super::utils;
 
@@ -12,7 +11,7 @@ const UID: usize = 7;
 const INODE: usize = 9;
 
 
-#[derive(PartialEq)]
+#[derive(Debug, PartialEq)]
 pub struct IpAddress(pub u8,pub u8,pub u8,pub u8);
 
 #[derive(Debug, PartialEq)]
@@ -45,12 +44,6 @@ pub struct SocketInfo {
 impl SocketInfo {
     pub fn new(procfs_record: &str) -> Result<SocketInfo, sscanf::Error>{
          build_socket_metadata(procfs_record)
-    }
-}
-
-impl fmt::Debug for IpAddress {
-    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
-        write!(f, "{}.{}.{}.{}",self.0,self.1,self.2,self.3)
     }
 }
 

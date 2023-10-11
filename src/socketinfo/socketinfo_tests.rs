@@ -7,6 +7,7 @@
 mod socketinfo_test {
 
     use crate::socketinfo::linuxsocket::{IpAddress, SocketInfo};
+    use rstest::fixture;
 
     struct TestData {
         input : &'static str,
@@ -15,7 +16,8 @@ mod socketinfo_test {
     }
 
 
-    fn setup() -> TestData {
+    #[fixture]
+    fn input_data() -> TestData {
         TestData{
             input : "8: 1400000A:C4B2 5A131268:01BB 06 00000000:00000000 03:000001F6 00000000     0        0 0 3 0000000052f0bc2a",
             expected_vector: Vec::from(
@@ -36,13 +38,13 @@ mod socketinfo_test {
 
     #[cfg(test)]
     mod linuxsocket_utils_tests{
-
+        use rstest::rstest;
+        use crate::socketinfo::socketinfo_tests::socketinfo_test::TestData;
         use crate::socketinfo::utils;
-        use super::setup;
+        use super::input_data;
 
-        #[test]
-        fn test_split_text_by_words(){
-            let input_data = setup();
+        #[rstest]
+        fn test_split_text_by_words(input_data: TestData){
             let sock_metadata = utils::split_text_by_words(input_data.input);
             //println!("Sock_metaData length {:?}",sock_metadata);
 
@@ -58,37 +60,19 @@ mod socketinfo_test {
     mod linuxsocket_tests{
         use std::{fs, io};
         use std::os::unix::fs::MetadataExt;
-        use std::fs::{DirEntry, ReadDir};
-        use sscanf::const_format::pmr::PVariant::Str;
+        use rstest::rstest;
 
         use crate::socketinfo::linuxsocket::SocketInfo;
         use crate::socketinfo::{utils};
-        use super::setup;
+        use crate::socketinfo::socketinfo_tests::socketinfo_test::TestData;
+        use super::input_data;
 
-        #[test]
-        fn test_socket_instanciation(){
-            let input_data = setup();
+        #[rstest]
+        fn test_socket_instanciation(input_data : TestData){
+
             let socket_info = SocketInfo::new(input_data.input).unwrap();
 
             assert_eq!(socket_info,input_data.expected_socketinfo);
-        }
-
-        #[test]
-        fn test(){
-            // All have type `Option<i32>`
-            let number = Some(7);
-            let letter: Option<i32> = None;
-            let emoticon: Option<i32> = None;
-
-            // The `if let` construct reads: "if `let` destructures `number` into
-            // `Some(i)`, evaluate the block (`{}`).
-            if let Some(i @ 7) = number {
-                println!("Matched {:?}!", i);
-            }
-
-            if emoticon == None {
-                println!("Emoticon is empty")
-            }
         }
 
         #[test]
@@ -97,7 +81,7 @@ mod socketinfo_test {
             let filepath = "/proc/313348/fd/209";
             let meta = fs::metadata(filepath)?;
 
-            let nb_hard_links = meta.nlink();
+
             println!("Metadata for {} : {}", filepath, meta.ino());
             Ok(())
         }

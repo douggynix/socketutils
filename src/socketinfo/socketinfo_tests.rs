@@ -50,8 +50,8 @@ mod socketinfo_test {
 
             assert_eq!(sock_metadata.len(), input_data.expected_vector.len());
 
-            for i in 0..input_data.expected_vector.len() {
-                assert_eq!(sock_metadata[i],input_data.expected_vector[i]);
+            for (i, & expected_vec_data) in input_data.expected_vector.iter().enumerate() {
+                assert_eq!(sock_metadata[i],expected_vec_data);
             }
         }
     }
@@ -81,7 +81,6 @@ mod socketinfo_test {
             let filepath = "/proc/313348/fd/209";
             let meta = fs::metadata(filepath)?;
 
-
             println!("Metadata for {} : {}", filepath, meta.ino());
             Ok(())
         }
@@ -94,7 +93,7 @@ mod socketinfo_test {
 
                     let file_name = dir_entry.file_name();
                     if let Some(file) = file_name.to_str() {
-                        if utils::isdigit(& file){
+                        if utils::isdigit(&file){
                             println!("{:?}",file_name);
                         }
                     }

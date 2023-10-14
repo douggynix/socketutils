@@ -6,7 +6,7 @@
  */
 mod socketinfo_test {
 
-    use crate::socketinfo::linuxsocket::{IpAddress, SocketInfo};
+    use crate::socketinfo::linuxsocket::{EndPoint, IpAddress, Protocol, SocketInfo};
     use rstest::fixture;
 
     struct TestData {
@@ -25,10 +25,9 @@ mod socketinfo_test {
                     "00000000", "0", "0", "0", "3", "0000000052f0bc2a" ],
             ),
             expected_socketinfo: SocketInfo {
-                local_address: IpAddress(10, 0, 0, 20),
-                local_port: 50354,
-                remote_address: IpAddress(104, 18, 19, 90),
-                remote_port: 443,
+                protocol: Protocol::TCP,
+                local_endpoint: EndPoint::new(vec![10, 0, 0, 20],50354),
+                remote_endpoint: EndPoint::new(vec![104, 18, 19, 90],443),
                 state: String::from("TIME_WAIT"),
                 inode: 0, uid: 0
             }
@@ -39,6 +38,8 @@ mod socketinfo_test {
     #[cfg(test)]
     mod linuxsocket_utils_tests{
         use rstest::rstest;
+        use crate::socketinfo::linuxsocket::{Protocol};
+        use crate::socketinfo::linuxsocket_builder::SocketInfoBuilder;
         use crate::socketinfo::socketinfo_tests::socketinfo_test::TestData;
         use crate::socketinfo::utils;
         use super::input_data;
@@ -54,6 +55,14 @@ mod socketinfo_test {
                 assert_eq!(sock_metadata[i],expected_vec_data);
             }
         }
+
+        #[rstest]
+        fn test_socketinfobuilder(input_data: TestData){
+            let sock_data = String::from("0: 00000000000000000000000000000000:0016 00000000000000000000000000000000:0000 0A 00000000:00000000 00:00000000 00000000     0        0 17293 1 00000000e23b2ab6 99 0 0 10 0");
+            let socket_info = SocketInfoBuilder::new(sock_data, Protocol::TCP6).build();
+            println!("{:?}",socket_info.unwrap());
+            print!("{:?}",vec![0,0]);
+        }
     }
 
     #[cfg(test)]
@@ -62,7 +71,7 @@ mod socketinfo_test {
         use std::os::unix::fs::MetadataExt;
         use rstest::rstest;
 
-        use crate::socketinfo::linuxsocket::SocketInfo;
+        use crate::socketinfo::linuxsocket::{Protocol, SocketInfo};
         use crate::socketinfo::{utils};
         use crate::socketinfo::socketinfo_tests::socketinfo_test::TestData;
         use super::input_data;
@@ -70,7 +79,9 @@ mod socketinfo_test {
         #[rstest]
         fn test_socket_instanciation(input_data : TestData){
 
-            let socket_info = SocketInfo::new(input_data.input).unwrap();
+            let socket_info =
+                SocketInfo::builder(input_data.input.to_string(),Protocol::TCP)
+                            .build().unwrap();
 
             assert_eq!(socket_info,input_data.expected_socketinfo);
         }

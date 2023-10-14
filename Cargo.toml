@@ -7,4 +7,5 @@ edition = "2021"
 
 [dependencies]
 regex = "1.9.6"
+rstest = "0.18.2"
 sscanf = "0.4.1"

@@ -71,10 +71,10 @@ fn parse_socket_endpoint(endpoint_entry: &str) -> Result<EndPoint, sscanf::Error
 fn parse_socket_endpoint6(endpoint_entry: &str) -> Result<EndPoint, sscanf::Error> {
     let little_endian6: (u16, u16, u16, u16, u16, u16, u16, u16, u16) = sscanf!(endpoint_entry,"{u16:x}{u16:x}{u16:x}{u16:x}{u16:x}{u16:x}{u16:x}{u16:x}:{u16:x}")? ;
 
-    let endpoint6 = EndPoint::new(vec![little_endian6.7, little_endian6.6,
-                                       little_endian6.5, little_endian6.4 ,
-                                       little_endian6.3, little_endian6.2,
-                                       little_endian6.1, little_endian6.0], little_endian6.8 );
+    let endpoint6 = EndPoint::new(vec![little_endian6.0.to_be(), little_endian6.1.to_be(),
+                                       little_endian6.2.to_be(), little_endian6.3.to_be() ,
+                                       little_endian6.4.to_be(), little_endian6.5.to_be(),
+                                       little_endian6.6.to_be(), little_endian6.7.to_be()], little_endian6.8 );
 
     Ok(endpoint6)
 }

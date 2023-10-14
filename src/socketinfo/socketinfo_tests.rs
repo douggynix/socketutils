@@ -6,7 +6,7 @@
  */
 mod socketinfo_test {
 
-    use crate::socketinfo::linuxsocket::{EndPoint, IpAddress, Protocol, SocketInfo};
+    use crate::socketinfo::linuxsocket::{EndPoint, Protocol, SocketInfo};
     use rstest::fixture;
 
     struct TestData {
@@ -58,10 +58,13 @@ mod socketinfo_test {
 
         #[rstest]
         fn test_socketinfobuilder(input_data: TestData){
-            let sock_data = String::from("0: 00000000000000000000000000000000:0016 00000000000000000000000000000000:0000 0A 00000000:00000000 00:00000000 00000000     0        0 17293 1 00000000e23b2ab6 99 0 0 10 0");
+            /*let sock_data = String::from("00000000000000000000000001000000:B2D4 00000000000000000000000001000000:0016 08 00000000:00000000 00:00000000 00000000  1000        0 24271887 1 0000000088a11a71 20 3 28 10 -1");
             let socket_info = SocketInfoBuilder::new(sock_data, Protocol::TCP6).build();
             println!("{:?}",socket_info.unwrap());
-            print!("{:?}",vec![0,0]);
+            print!("{:?}",vec![0,0]);*/
+            let x = 0x0100_u16.to_be();
+            println!("{:?}",x)
+
         }
     }
 

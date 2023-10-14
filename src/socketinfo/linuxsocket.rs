@@ -1,15 +1,11 @@
-use std::borrow::Borrow;
 use std::fmt;
 use std::fmt::Formatter;
 use crate::socketinfo::linuxsocket_builder::SocketInfoBuilder;
 
-#[derive(Debug,PartialEq,Eq, Hash,Clone)]
+#[derive(Debug,PartialEq,Eq, Hash,Clone,Ord,PartialOrd)]
 pub enum Protocol{
     TCP=0x01, UDP=0x02, TCP6=0x03,UDP6=0x04,
 }
-
-#[derive(PartialEq,Default)]
-pub struct IpAddress(pub u8,pub u8,pub u8,pub u8);
 
 
 impl fmt::Debug for EndPoint {
@@ -40,7 +36,10 @@ impl ToString for EndPoint{
             format!("{} Port={}",ip_address.join("."), self.port)
         }
         else{
-            format!("{} Port={}",ip_address.join(":"), self.port)
+            let mut addr = ip_address.join(":");
+            //remove the last ':' ::::::1:
+            addr.remove(addr.len()-1);
+            format!("{} Port={}",addr, self.port)
         }
 
     }

@@ -61,6 +61,7 @@ mod socketinfo_test {
             /*let sock_data = String::from("00000000000000000000000001000000:B2D4 00000000000000000000000001000000:0016 08 00000000:00000000 00:00000000 00000000  1000        0 24271887 1 0000000088a11a71 20 3 28 10 -1");
             let socket_info = SocketInfoBuilder::new(sock_data, Protocol::TCP6).build();
             println!("{:?}",socket_info.unwrap()); */
+            //println!("{:x}",10);
         }
     }
 

@@ -20,12 +20,13 @@ impl ToString for EndPoint{
                 .map(|item| {
                     match self.address.len()  {
                         4 => format!("{}",item),
-                        _ => {
+                        _ => { //IPV6
                             if item == & 0_u16 {
                                 format!("")
                             }
                             else {
-                                format!("{}", item)
+                                //display ipv6 adress in hexadecimal format
+                                format!("{:x}", item)
                             }
                         }
                     }
@@ -33,13 +34,13 @@ impl ToString for EndPoint{
                 .collect::<Vec<String>>();
 
         if self.address.len() == 4 {
-            format!("{} Port={}",ip_address.join("."), self.port)
+            format!("{} port={}",ip_address.join("."), self.port)
         }
         else{
             let mut addr = ip_address.join(":");
             //remove the last ':' ::::::1:
             addr.remove(addr.len()-1);
-            format!("{} Port={}",addr, self.port)
+            format!("{} port={}",addr, self.port)
         }
 
     }

@@ -29,12 +29,12 @@ impl SocketInfoBuilder {
         let socket_meta_vector = utils::split_text_by_words(self.socket_data.as_str());
 
         let local_endpoint = match self.protocol {
-            Protocol::TCP | Protocol::UDP => parse_socket_endpoint(socket_meta_vector[LOCAL_SOCKET])?,
+            Protocol::TCP | Protocol::UDP | Protocol::RAW => parse_socket_endpoint(socket_meta_vector[LOCAL_SOCKET])?,
             Protocol::TCP6 | Protocol::UDP6 => parse_socket_endpoint6(socket_meta_vector[LOCAL_SOCKET])?
         };
 
         let remote_endpoint = match self.protocol {
-            Protocol::TCP | Protocol::UDP => parse_socket_endpoint(socket_meta_vector[REMOTE_SOCKET])?,
+            Protocol::TCP | Protocol::UDP  | Protocol::RAW => parse_socket_endpoint(socket_meta_vector[REMOTE_SOCKET])?,
             Protocol::TCP6 | Protocol::UDP6 => parse_socket_endpoint6(socket_meta_vector[REMOTE_SOCKET])?
         };
 

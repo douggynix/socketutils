@@ -4,7 +4,7 @@ use crate::socketinfo::linuxsocket_builder::SocketInfoBuilder;
 
 #[derive(Debug,PartialEq,Eq, Hash,Clone,Ord,PartialOrd)]
 pub enum Protocol{
-    TCP=0x01, UDP=0x02, TCP6=0x03,UDP6=0x04,
+    TCP=0x01, UDP=0x02, TCP6=0x03, UDP6=0x04, RAW=0x05,
 }
 
 

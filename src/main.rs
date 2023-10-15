@@ -14,6 +14,7 @@ fn main() -> std::io::Result<()> {
         (Protocol::TCP6, "/proc/net/tcp6"),
         (Protocol::UDP, "/proc/net/udp"),
         (Protocol::UDP6, "/proc/net/udp6"),
+        (Protocol::RAW, "/proc/net/raw"),
     ]);
 
     for (net_protocol,net_file) in socket_files.iter() {

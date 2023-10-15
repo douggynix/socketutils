@@ -19,17 +19,14 @@ fn main() -> std::io::Result<()> {
     for (net_protocol,net_file) in socket_files.iter() {
         let  proc_file = File::open(net_file)?;
         let buff_reader = BufReader::new(proc_file);
-        for line in buff_reader.lines().skip(1){
-            if let Ok(socket_row) = line {
-                //println!("{:?}",socket_row.as_str());
-                let socket_info =
-                    SocketInfo::builder(socket_row,  net_protocol.clone() )
-                        .build();
-                println!("{:?}",socket_info.unwrap());
-            }
+        for line in buff_reader.lines().skip(1).flatten(){
+            let socket_info =
+                SocketInfo::builder(line,  net_protocol.clone() )
+                    .build();
+
+            println!("{:?}",socket_info.unwrap());
         }
     }
-    //
 
     Ok(())
 }

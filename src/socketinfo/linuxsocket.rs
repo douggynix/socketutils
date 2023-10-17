@@ -7,6 +7,12 @@ pub enum Protocol{
     TCP=0x01, UDP=0x02, TCP6=0x03, UDP6=0x04, RAW=0x05,
 }
 
+#[derive(Debug,PartialEq,Eq,Default)]
+pub enum AddressType {
+    #[default]
+    IPV4,
+    IPV6
+}
 
 impl fmt::Debug for EndPoint {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
@@ -18,9 +24,9 @@ impl ToString for EndPoint{
     fn to_string(&self) -> String {
         let ip_address = self.address.iter()
                 .map(|item| {
-                    match self.address.len()  {
-                        4 => format!("{}",item),
-                        _ => { //IPV6
+                    match self.address_type  {
+                        AddressType::IPV4 => format!("{}",item),
+                        AddressType::IPV6=> {
                             if item == & 0_u16 {
                                 format!("")
                             }
@@ -52,13 +58,15 @@ impl ToString for EndPoint{
 pub struct EndPoint {
     port : u16,
     address: Vec<u16>,
+    address_type : AddressType,
 }
 
 impl EndPoint {
-    pub fn new(address : Vec<u16>, port : u16) -> EndPoint {
+    pub fn new(address : Vec<u16>, port : u16, address_type: AddressType) -> EndPoint {
         EndPoint{
             port,
             address,
+            address_type,
         }
     }
 }

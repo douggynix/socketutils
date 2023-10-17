@@ -8,6 +8,7 @@ mod socketinfo_test {
 
     use crate::socketinfo::linuxsocket::{EndPoint, Protocol, SocketInfo};
     use rstest::fixture;
+    use crate::socketinfo::linuxsocket::AddressType::IPV4;
 
     struct TestData {
         input : &'static str,
@@ -26,8 +27,8 @@ mod socketinfo_test {
             ),
             expected_socketinfo: SocketInfo {
                 protocol: Protocol::TCP,
-                local_endpoint: EndPoint::new(vec![10, 0, 0, 20],50354),
-                remote_endpoint: EndPoint::new(vec![104, 18, 19, 90],443),
+                local_endpoint: EndPoint::new(vec![10, 0, 0, 20],50354, IPV4),
+                remote_endpoint: EndPoint::new(vec![104, 18, 19, 90],443, IPV4),
                 state: String::from("TIME_WAIT"),
                 inode: 0, uid: 0
             }

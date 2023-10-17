@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 use sscanf::sscanf;
-use crate::socketinfo::linuxsocket::{EndPoint, Protocol, SocketInfo};
+use crate::socketinfo::linuxsocket::{EndPoint, Protocol, SocketInfo, AddressType};
 use super::utils;
 
 
@@ -64,7 +64,7 @@ fn parse_socket_endpoint(endpoint_entry: &str) -> Result<EndPoint, sscanf::Error
 
     let endpoint = EndPoint::new( vec![little_endian.3 as u16, little_endian.2 as u16 ,
                                        little_endian.1 as u16, little_endian.0 as u16],
-                                  little_endian.4 );
+                                  little_endian.4 , AddressType::IPV4  );
     Ok(endpoint)
 }
 
@@ -74,7 +74,8 @@ fn parse_socket_endpoint6(endpoint_entry: &str) -> Result<EndPoint, sscanf::Erro
     let endpoint6 = EndPoint::new(vec![little_endian6.0.to_be(), little_endian6.1.to_be(),
                                        little_endian6.2.to_be(), little_endian6.3.to_be() ,
                                        little_endian6.4.to_be(), little_endian6.5.to_be(),
-                                       little_endian6.6.to_be(), little_endian6.7.to_be()], little_endian6.8 );
+                                       little_endian6.6.to_be(), little_endian6.7.to_be()],
+                                  little_endian6.8, AddressType::IPV6 );
 
     Ok(endpoint6)
 }

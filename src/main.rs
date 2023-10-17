@@ -1,6 +1,6 @@
 mod socketinfo;
 
-use std::collections::{BTreeMap};
+use std::collections::{BTreeMap, LinkedList};
 use std::fs::File;
 use std::io::{BufRead, BufReader};
 use socketinfo::linuxsocket::SocketInfo;
@@ -17,6 +17,8 @@ fn main() -> std::io::Result<()> {
         (Protocol::RAW, "/proc/net/raw"),
     ]);
 
+    let mut socketList: LinkedList<SocketInfo> = LinkedList::new();
+
     for (net_protocol,net_file) in socket_files.iter() {
         let  proc_file = File::open(net_file)?;
         let buff_reader = BufReader::new(proc_file);
@@ -24,8 +26,8 @@ fn main() -> std::io::Result<()> {
             let socket_info =
                 SocketInfo::builder(line,  net_protocol.clone() )
                     .build();
-
-            println!("{:?}",socket_info.unwrap());
+            socketList.push_back(socket_info.unwrap());
+            println!("{:?}",socketList.back().unwrap());
         }
     }
 

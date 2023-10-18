@@ -1,14 +1,11 @@
 mod socketinfo;
 
-use std::borrow::Borrow;
-use std::collections::{BTreeMap, HashSet, LinkedList};
+use std::collections::{BTreeMap,LinkedList};
 use std::error;
-use std::fmt::format;
 use std::fs::File;
 use std::io::{BufRead, BufReader};
 use socketinfo::linuxsocket::SocketInfo;
 use crate::socketinfo::linuxsocket::Protocol;
-use crate::socketinfo::socketprocessinfo::ProcessInfo;
 use crate::socketinfo::socketprocessinfo_builder as processinfo_builder;
 
 
@@ -21,7 +18,7 @@ fn main() -> std::result::Result<(),Box<dyn error::Error>> {
         (Protocol::RAW, "/proc/net/raw"),
     ]);
 
-    let mut socketList: LinkedList<SocketInfo> = LinkedList::new();
+    let mut socket_list: LinkedList<SocketInfo> = LinkedList::new();
 
 
     for (net_protocol,net_file) in socket_files.iter() {
@@ -30,18 +27,18 @@ fn main() -> std::result::Result<(),Box<dyn error::Error>> {
         for line in buff_reader.lines().skip(1).flatten(){
             if let Ok(socket_info) = SocketInfo::builder(line,  net_protocol.clone() )
                 .build() {
-                socketList.push_back(socket_info);
-                //let process_info = ProcessInfo::builder(socketList.back().unwrap().inode).build()?;
-                //println!("{:?}",socketList.back());
+                socket_list.push_back(socket_info);
+                //let process_info = ProcessInfo::builder(socket_list.back().unwrap().inode).build()?;
+                //println!("{:?}",socket_list.back());
             }
         }
     }
 
-    let processInfo = processinfo_builder::get_processes_info(& socketList)?;
-    socketList.iter().for_each( |socketinfo| {
+    let process_info = processinfo_builder::get_processes_info(&socket_list)?;
+    socket_list.iter().for_each( |socketinfo| {
         let inode = format!("{}", socketinfo.inode);
 
-        if let Some(proc_info) = processInfo.get( & inode) {
+        if let Some(proc_info) = process_info.get( & inode) {
             let mut program = format!("{}", proc_info.process_cmdline);
             program.truncate(64);
             println!("{:?} Pid={} Program={}",socketinfo , proc_info.pid,  program );

@@ -75,6 +75,8 @@ mod socketinfo_test {
         use crate::socketinfo::linuxsocket::{Protocol, SocketInfo};
         use crate::socketinfo::{utils};
         use crate::socketinfo::socketinfo_tests::socketinfo_test::TestData;
+        use crate::socketinfo::socketprocessinfo::ProcessInfo;
+        use crate::socketinfo::socketprocessinfo_builder::{get_process_cmdline, get_processinfo_for_inode, has_inode};
         use super::input_data;
 
         #[rstest]
@@ -99,18 +101,22 @@ mod socketinfo_test {
 
         #[test]
         fn test_directory_entry() -> std::io::Result<()> {
-            let dir = fs::read_dir("/proc")?;
+            /*let dir = fs::read_dir("/proc/")?;
             dir.for_each( |entry| {
                 if let Ok(dir_entry) = entry {
 
                     let file_name = dir_entry.file_name();
                     if let Some(file) = file_name.to_str() {
                         if utils::isdigit(&file){
-                            println!("{:?}",file_name);
+                            println!("{:?}",file);
                         }
                     }
                 }
             });
+             */
+
+            assert_eq!(true, has_inode(& "942264".to_string(),& "29003656".to_string()));
+            println!("{:?}",ProcessInfo::builder(29003656).build());
             Ok(())
         }
     }

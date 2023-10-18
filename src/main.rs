@@ -6,7 +6,7 @@ use std::fs::File;
 use std::io::{BufRead, BufReader};
 use socketinfo::linuxsocket::SocketInfo;
 use crate::socketinfo::linuxsocket::Protocol;
-use crate::socketinfo::socketprocessinfo_builder as processinfo_builder;
+use crate::socketinfo::{socketprocessinfo_builder as processinfo_builder, utils};
 
 
 fn main() -> std::result::Result<(),Box<dyn error::Error>> {
@@ -34,17 +34,26 @@ fn main() -> std::result::Result<(),Box<dyn error::Error>> {
         }
     }
 
+    //build a HashMap with Key=inode_number and Value=ProcessInfo in order to find program name later
+    // through SocketInfo.inode
     let process_info = processinfo_builder::get_processes_info(&socket_list)?;
+
     socket_list.iter().for_each( |socketinfo| {
         let inode = format!("{}", socketinfo.inode);
 
         if let Some(proc_info) = process_info.get( & inode) {
-            let mut program = format!("{}", proc_info.process_cmdline);
-            program.truncate(64);
-            println!("{:?} Pid={} Program={}",socketinfo , proc_info.pid,  program );
+            let mut program = utils::truncate(& proc_info.process_cmdline, 64);
+
+            program = utils::remove_non_printable_chars(&program);
+
+            //println!("{:?} Pid={} Program={}",socketinfo , proc_info.pid,  program );
+            println!("protocol={:?}, pid={}, local={:?}, remote={:?}, state={}, program={}",socketinfo.protocol , proc_info.pid,
+                     socketinfo.local_endpoint,socketinfo.remote_endpoint, socketinfo.state, program);
         }
         else{
-            println!("{:?} Pid=-- Program=--",socketinfo);
+            //println!("{:?} Pid=-- Program=--",socketinfo);
+            println!("protocol={:?}, pid=--, local={:?}, remote={:?}, state={}, program=--",socketinfo.protocol ,
+                     socketinfo.local_endpoint,socketinfo.remote_endpoint, socketinfo.state);
         }
         //println!("{:?} Pid=-- Program=--",socketinfo);
     });

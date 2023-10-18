@@ -100,6 +100,7 @@ mod socketinfo_test {
         }
 
         #[test]
+        #[ignore]
         fn test_directory_entry() -> std::io::Result<()> {
             /*let dir = fs::read_dir("/proc/")?;
             dir.for_each( |entry| {

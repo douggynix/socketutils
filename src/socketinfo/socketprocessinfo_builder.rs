@@ -1,7 +1,5 @@
 use std::collections::{HashMap, HashSet, LinkedList};
 use std::fs;
-use std::fs::File;
-use std::io::{BufRead, BufReader};
 use std::os::unix::fs::{MetadataExt};
 use crate::socketinfo::linuxsocket::SocketInfo;
 use crate::socketinfo::socketprocessinfo::ProcessInfo;
@@ -35,11 +33,7 @@ fn get_dir_content(path : &str) -> std::io::Result<Vec<String>> {
 
 
 pub fn get_process_cmdline(process_id : &String) -> std::io::Result<String>{
-    let  cmdline_file = File::open(format!("/proc/{}/cmdline",process_id))?;
-    let buff_reader = BufReader::new(cmdline_file);
-    let cmdline = buff_reader.lines()
-                            .flat_map(|line| line)
-                            .collect::<String>();
+    let cmdline = fs::read_to_string(format!("/proc/{}/cmdline",process_id))?;
     Ok(cmdline)
 }
 

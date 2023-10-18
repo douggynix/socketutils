@@ -40,13 +40,13 @@ impl ToString for EndPoint{
                 .collect::<Vec<String>>();
 
         if self.address.len() == 4 {
-            format!("{} port={}",ip_address.join("."), self.port)
+            format!("{}:{}",ip_address.join("."), self.port)
         }
         else{
             let mut addr = ip_address.join(":");
             //remove the last ':' ::::::1:
             addr.remove(addr.len()-1);
-            format!("{} port={}",addr, self.port)
+            format!("{}:{}",addr, self.port)
         }
 
     }

@@ -39,8 +39,6 @@ mod socketinfo_test {
     #[cfg(test)]
     mod linuxsocket_utils_tests{
         use rstest::rstest;
-        use crate::socketinfo::linuxsocket::{Protocol};
-        use crate::socketinfo::linuxsocket_builder::SocketInfoBuilder;
         use crate::socketinfo::socketinfo_tests::socketinfo_test::TestData;
         use crate::socketinfo::utils;
         use super::input_data;
@@ -56,14 +54,6 @@ mod socketinfo_test {
                 assert_eq!(sock_metadata[i],expected_vec_data);
             }
         }
-
-        #[rstest]
-        fn test_socketinfobuilder(input_data: TestData){
-            /*let sock_data = String::from("00000000000000000000000001000000:B2D4 00000000000000000000000001000000:0016 08 00000000:00000000 00:00000000 00000000  1000        0 24271887 1 0000000088a11a71 20 3 28 10 -1");
-            let socket_info = SocketInfoBuilder::new(sock_data, Protocol::TCP6).build();
-            println!("{:?}",socket_info.unwrap()); */
-            //println!("{:x}",10);
-        }
     }
 
     #[cfg(test)]
@@ -73,10 +63,7 @@ mod socketinfo_test {
         use rstest::rstest;
 
         use crate::socketinfo::linuxsocket::{Protocol, SocketInfo};
-        use crate::socketinfo::{utils};
         use crate::socketinfo::socketinfo_tests::socketinfo_test::TestData;
-        use crate::socketinfo::socketprocessinfo::ProcessInfo;
-        use crate::socketinfo::socketprocessinfo_builder::{get_process_cmdline};
         use super::input_data;
 
         #[rstest]

@@ -1,14 +1,15 @@
 mod socketinfo;
 
-use std::collections::{BTreeMap, LinkedList};
+use std::collections::{BTreeMap,LinkedList};
+use std::error;
 use std::fs::File;
 use std::io::{BufRead, BufReader};
 use socketinfo::linuxsocket::SocketInfo;
 use crate::socketinfo::linuxsocket::Protocol;
+use crate::socketinfo::socketprocessinfo_builder as processinfo_builder;
 
-fn main() -> std::io::Result<()> {
-   // let row ="8: 1400000A:C4B2 5A131268:01BB 06 00000000:00000000 03:000001F6 00000000     0        0 0 3 0000000052f0bc2a";
-     //println!("{}",row);
+
+fn main() -> std::result::Result<(),Box<dyn error::Error>> {
     let socket_files :BTreeMap<Protocol,&str>  = BTreeMap::from([
         (Protocol::TCP, "/proc/net/tcp"),
         (Protocol::TCP6, "/proc/net/tcp6"),
@@ -17,19 +18,36 @@ fn main() -> std::io::Result<()> {
         (Protocol::RAW, "/proc/net/raw"),
     ]);
 
-    let mut socketList: LinkedList<SocketInfo> = LinkedList::new();
+    let mut socket_list: LinkedList<SocketInfo> = LinkedList::new();
+
 
     for (net_protocol,net_file) in socket_files.iter() {
         let  proc_file = File::open(net_file)?;
         let buff_reader = BufReader::new(proc_file);
         for line in buff_reader.lines().skip(1).flatten(){
-            let socket_info =
-                SocketInfo::builder(line,  net_protocol.clone() )
-                    .build();
-            socketList.push_back(socket_info.unwrap());
-            println!("{:?}",socketList.back().unwrap());
+            if let Ok(socket_info) = SocketInfo::builder(line,  net_protocol.clone() )
+                .build() {
+                socket_list.push_back(socket_info);
+                //let process_info = ProcessInfo::builder(socket_list.back().unwrap().inode).build()?;
+                //println!("{:?}",socket_list.back());
+            }
         }
     }
+
+    let process_info = processinfo_builder::get_processes_info(&socket_list)?;
+    socket_list.iter().for_each( |socketinfo| {
+        let inode = format!("{}", socketinfo.inode);
+
+        if let Some(proc_info) = process_info.get( & inode) {
+            let mut program = format!("{}", proc_info.process_cmdline);
+            program.truncate(64);
+            println!("{:?} Pid={} Program={}",socketinfo , proc_info.pid,  program );
+        }
+        else{
+            println!("{:?} Pid=-- Program=--",socketinfo);
+        }
+        //println!("{:?} Pid=-- Program=--",socketinfo);
+    });
 
     Ok(())
 }

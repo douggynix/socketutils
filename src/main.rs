@@ -6,7 +6,7 @@ use std::fs::File;
 use std::io::{BufRead, BufReader};
 use socketinfo::linuxsocket::SocketInfo;
 use crate::socketinfo::linuxsocket::Protocol;
-use crate::socketinfo::{socketprocessinfo_builder as processinfo_builder, utils};
+use crate::socketinfo::{socketprocessinfo_builder as processinfo_builder};
 
 
 fn main() -> std::result::Result<(),Box<dyn error::Error>> {
@@ -25,37 +25,31 @@ fn main() -> std::result::Result<(),Box<dyn error::Error>> {
         let  proc_file = File::open(net_file)?;
         let buff_reader = BufReader::new(proc_file);
         for line in buff_reader.lines().skip(1).flatten(){
-            if let Ok(socket_info) = SocketInfo::builder(line,  net_protocol.clone() )
+            if let Ok(socket_info) = SocketInfo::builder(line,  Box::new(*net_protocol) )
                 .build() {
                 socket_list.push_back(socket_info);
-                //let process_info = ProcessInfo::builder(socket_list.back().unwrap().inode).build()?;
-                //println!("{:?}",socket_list.back());
             }
         }
     }
 
     //build a HashMap with Key=inode_number and Value=ProcessInfo in order to find program name later
     // through SocketInfo.inode
-    let process_info = processinfo_builder::get_processes_info(&socket_list)?;
+    let process_map = processinfo_builder::get_processes_info(&socket_list)?;
 
+    //Look for processnames for each socket using their inode number as key from process_map
     socket_list.iter().for_each( |socketinfo| {
         let inode = format!("{}", socketinfo.inode);
 
-        if let Some(proc_info) = process_info.get( & inode) {
-            let mut program = utils::truncate(& proc_info.process_cmdline, 64);
+        if let Some(proc_info) = process_map.get( & inode) {
+            let program = & proc_info.process_cmdline;
 
-            program = utils::remove_non_printable_chars(&program);
-
-            //println!("{:?} Pid={} Program={}",socketinfo , proc_info.pid,  program );
-            println!("protocol={:?}, pid={}, local={:?}, remote={:?}, state={}, program={}",socketinfo.protocol , proc_info.pid,
-                     socketinfo.local_endpoint,socketinfo.remote_endpoint, socketinfo.state, program);
+            println!("protocol={:?}, pid={}, local={:?}, remote={:?}, inode={}, state={}, program={}",socketinfo.protocol , proc_info.pid,
+                     socketinfo.local_endpoint,socketinfo.remote_endpoint, socketinfo.inode, socketinfo.state, program);
         }
         else{
-            //println!("{:?} Pid=-- Program=--",socketinfo);
-            println!("protocol={:?}, pid=--, local={:?}, remote={:?}, state={}, program=--",socketinfo.protocol ,
-                     socketinfo.local_endpoint,socketinfo.remote_endpoint, socketinfo.state);
+            println!("protocol={:?}, pid=--, local={:?}, remote={:?}, inode={}, state={}, program=--",socketinfo.protocol ,
+                     socketinfo.local_endpoint,socketinfo.remote_endpoint, socketinfo.inode, socketinfo.state);
         }
-        //println!("{:?} Pid=-- Program=--",socketinfo);
     });
 
     Ok(())

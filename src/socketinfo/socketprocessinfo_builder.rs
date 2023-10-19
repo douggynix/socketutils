@@ -33,7 +33,9 @@ fn get_dir_content(path : &str) -> std::io::Result<Vec<String>> {
 
 
 pub fn get_process_cmdline(process_id : &String) -> std::io::Result<String>{
-    let cmdline = fs::read_to_string(format!("/proc/{}/cmdline",process_id))?;
+    let mut cmdline = fs::read_to_string(format!("/proc/{}/cmdline",process_id))?;
+    cmdline = utils::truncate(&cmdline, 64);
+    cmdline = utils::remove_non_printable_chars(&cmdline);
     Ok(cmdline)
 }
 
@@ -62,6 +64,7 @@ pub fn get_inodes_for_process(process_id: &String) -> std::io::Result<HashSet<St
 }
 
 pub fn get_processes_info(socket_list: &LinkedList<SocketInfo>) -> std::io::Result<HashMap<String,ProcessInfo>>{
+    //convert list to a hashset of inode numbers
     let mut inode_set = socket_list
         .iter()
         .filter(|sock_info| sock_info.inode > 2)
@@ -81,9 +84,11 @@ pub fn get_processes_info(socket_list: &LinkedList<SocketInfo>) -> std::io::Resu
         //for /proc/pid/fd for each individual inodes in the general inode_set declared above
         this_process_inodes.iter()
             .filter( | & inode| {
+                // See this process has inode numbers in inode_sets
                 let has_inode = inode_set.contains(inode);
-                //we remove existing inodes already found our space and runtime complexity for our search
-                //upon next iteration
+                //we  delete these process inodes from the inode_sets
+                //this will reduce the space and time complexity of our lookup.
+                //this will avoid us re-looking for those that has already been found earlier in future ones
                 inode_set.remove(inode);
                 return has_inode;
             })

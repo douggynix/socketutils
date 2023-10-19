@@ -22,3 +22,9 @@ jobs:
       run: cargo test --verbose -- --nocapture
     - name: Run the executable after build
       run: cargo run
+    - name: Benchmark socketutils vs netstat
+      run: |
+        echo "Running Socket socketutils benchmark"
+        time target/release/socketutils > /dev/null
+        echo "Running netstat benchmark"
+        time netstat -anltp

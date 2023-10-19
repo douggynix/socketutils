@@ -27,4 +27,4 @@ jobs:
         echo "Running Socket socketutils benchmark"
         time target/release/socketutils > /dev/null
         echo "Running netstat benchmark"
-        time netstat -anltp
+        time netstat -anltp > /dev/null

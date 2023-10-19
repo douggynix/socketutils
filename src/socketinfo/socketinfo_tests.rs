@@ -70,7 +70,7 @@ mod socketinfo_test {
         fn test_socket_instanciation(input_data : TestData){
 
             let socket_info =
-                SocketInfo::builder(input_data.input.to_string(),Protocol::TCP)
+                SocketInfo::builder(input_data.input.to_string(),Box::new(Protocol::TCP))
                             .build().unwrap();
 
             assert_eq!(socket_info,input_data.expected_socketinfo);

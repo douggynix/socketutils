@@ -12,11 +12,11 @@ const INODE: usize = 9;
 
 pub struct SocketInfoBuilder{
     socket_data: String,
-    protocol: Protocol,
+    protocol: Box<Protocol>,
 }
 
 impl SocketInfoBuilder {
-    pub fn new(data : String, proto: Protocol) -> Self {
+    pub fn new(data : String, proto: Box<Protocol>) -> Self {
         SocketInfoBuilder {
             socket_data: data,
             protocol: proto,
@@ -28,18 +28,18 @@ impl SocketInfoBuilder {
 
         let socket_meta_vector = utils::split_text_by_words(self.socket_data.as_str());
 
-        let local_endpoint = match self.protocol {
+        let local_endpoint = match *self.protocol {
             Protocol::TCP | Protocol::UDP | Protocol::RAW => parse_socket_endpoint(socket_meta_vector[LOCAL_SOCKET])?,
             Protocol::TCP6 | Protocol::UDP6 => parse_socket_endpoint6(socket_meta_vector[LOCAL_SOCKET])?
         };
 
-        let remote_endpoint = match self.protocol {
+        let remote_endpoint = match *self.protocol {
             Protocol::TCP | Protocol::UDP  | Protocol::RAW => parse_socket_endpoint(socket_meta_vector[REMOTE_SOCKET])?,
             Protocol::TCP6 | Protocol::UDP6 => parse_socket_endpoint6(socket_meta_vector[REMOTE_SOCKET])?
         };
 
         Ok(SocketInfo{
-            protocol: self.protocol,
+            protocol: *self.protocol,
             local_endpoint,
             remote_endpoint,
             ..base_socket_info

@@ -2,7 +2,7 @@ use std::fmt;
 use std::fmt::Formatter;
 use crate::socketinfo::linuxsocket_builder::SocketInfoBuilder;
 
-#[derive(Debug,PartialEq,Eq, Hash,Clone,Ord,PartialOrd)]
+#[derive(Debug,PartialEq,Eq, Hash,Clone,Ord,PartialOrd, Copy)]
 pub enum Protocol{
     TCP=0x01, UDP=0x02, TCP6=0x03, UDP6=0x04, RAW=0x05,
 }
@@ -95,7 +95,7 @@ impl Default for SocketInfo {
 }
 
 impl SocketInfo {
-    pub fn builder(procfs_record: String, proto : Protocol) -> SocketInfoBuilder{
+    pub fn builder(procfs_record: String, proto : Box<Protocol>) -> SocketInfoBuilder{
          SocketInfoBuilder::new(procfs_record,proto)
     }
 }

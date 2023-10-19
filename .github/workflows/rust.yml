@@ -17,8 +17,12 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     - name: Build
-      run: cargo build --verbose
+      run: cargo build --verbose --release
     - name: Run tests
       run: cargo test --verbose -- --nocapture
     - name: Run the executable after build
-      run: cargo run
+      run: cargo run --release
+    - name: Show Benchmark for socketutils
+      run: time target/release/socketutils > /dev/null
+    - name: Show Benchmark for netstat
+      run: time netstat -anltp > /dev/null

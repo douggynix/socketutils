@@ -17,11 +17,11 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     - name: Build
-      run: cargo build --verbose
+      run: cargo build --verbose --release
     - name: Run tests
       run: cargo test --verbose -- --nocapture
     - name: Run the executable after build
-      run: cargo run
+      run: cargo run --release
     - name: Benchmark socketutils vs netstat
       run: |
         echo "Running Socket socketutils benchmark"
